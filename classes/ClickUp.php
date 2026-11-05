@@ -4,7 +4,7 @@ class ClickUp
 {
     private $apiKeyClickUp;
     private $listId;
-    private $tagsQueNaoQuero = ['smartpos'];
+    private $tagsQueQuero = ['smartpos'];
 
     public function __construct()
     {
@@ -14,16 +14,18 @@ class ClickUp
 
     public function existeTask($chamado, $freshDesk)
     {
+        $ambiente = $chamado['custom_fields']['cf_ambiente'] ?? '';
+
         if(strcasecmp($chamado['custom_fields']['cf_ambiente'], 'smart pos') === 0){
            $chamado['custom_fields']['cf_ambiente'] = 'smartpos';
         }
 
-        // Não importar chamados do ambiente smartpos, não adiciona no clickUP.
-          if (in_array($chamado['custom_fields']['cf_ambiente'], $this->tagsQueNaoQuero, true)) {
+        // Não importar chamados do ambiente que não quero, não adiciona no clickUP.
+          if (!in_array($ambiente, $this->tagsQueQuero, true)) {
             echo "ID Freshdesk: {$chamado['id']}\n";
             echo "Domínio: {$chamado['domain']}\n";
             echo "Tag: {$chamado['custom_fields']['cf_ambiente']} \n";
-            echo "Pertence a uma tag que não quero! Não entra! \n";
+            echo "Não possui uma tag que quero! Não entra! \n";
             echo "-------------------------\n";
             return true;
         }
