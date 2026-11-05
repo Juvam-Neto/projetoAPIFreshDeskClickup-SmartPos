@@ -1,0 +1,45 @@
+<?php
+
+require 'vendor/autoload.php';
+require 'classes/FreshDesk.php';
+require 'classes/ClickUp.php';
+
+//Carrega o .env, adicionando as variáveis de ambiente
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+$dotenv->required(['FRESHDESK_API_KEY_RMV', 'FRESHDESK_DOMAIN_RMV', 'FRESHDESK_API_KEY_SIMPLESMP',
+'FRESHDESK_DOMAIN_SIMPLESMP', 'CLICKUP_API_KEY', 'CLICKUP_LIST_ID']);
+
+$freshDesk = new Freshdesk();
+$clickUP = new ClickUp();
+
+$contadorTaskCriada = 0;
+$chamadosAbertos = $freshDesk->listarChamados();
+
+//Abrindo arquivo de log
+$arquivoLog = fopen(__DIR__ . '/log/logs.txt','a');
+
+if($arquivoLog == false){
+    die('Não foi possível abrir o arquivo.');
+}
+
+//Setando para usar fuso-horário mais próximo
+date_default_timezone_set('America/Fortaleza');
+
+fwrite($arquivoLog, date('Y-m-d H:i:s') . " - Rotina executada\n");
+
+foreach($chamadosAbertos as $chamado){
+    if(!$clickUP->existeTask($chamado, $freshDesk)){
+        $solicitante = $freshDesk->getSolicitante($chamado['requester_id']);
+        $clickUP->criarTask(
+            $chamado,
+            $solicitante
+        );
+        $contadorTaskCriada++;
+        fwrite($arquivoLog, "Task de n° - " . $chamado['id'] . ", domínio: ". $chamado['domain'] . 
+        ", tag: " . $chamado['custom_fields']['cf_ambiente'] .", foi criada com sucesso!\n");
+    }
+}
+
+fwrite($arquivoLog, "Tasks criadas: {$contadorTaskCriada}\n\n");
+fclose($arquivoLog);
