@@ -15,9 +15,9 @@ class ClickUp
     public function existeTask($chamado, $freshDesk)
     {
         $ambiente = $chamado['custom_fields']['cf_ambiente'] ?? '';
-
-        if(strcasecmp($chamado['custom_fields']['cf_ambiente'], 'smart pos') === 0){
-           $chamado['custom_fields']['cf_ambiente'] = 'smartpos';
+        $ambiente = strtolower(trim($ambiente));
+        if ($ambiente === 'smart pos') {
+            $ambiente = 'smartpos';
         }
 
         // Não importar chamados do ambiente que não quero, não adiciona no clickUP.
@@ -111,6 +111,10 @@ class ClickUp
             }else{
                 $chamado['custom_fields']['cf_ambiente'] = 'mvgest';
             }
+        }
+
+        if (strcasecmp(strtolower(trim($chamado['custom_fields']['cf_ambiente'])), 'smart pos') === 0) {
+            $chamado['custom_fields']['cf_ambiente'] = 'smartpos';
         }
 
         $tags = [];
